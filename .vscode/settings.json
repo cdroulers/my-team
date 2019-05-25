@@ -1,0 +1,24 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "node_modules": true,
+    "typings/main": true,
+    "typings/main.d.ts": true,
+    "build": true
+  },
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.rulers": [100, 120],
+  "files.associations": {
+    ".babelrc": "json",
+    ".eslintrc": "json"
+  },
+  "javascript.validate.enable": false,
+  "prettier.bracketSpacing": true,
+  "prettier.jsxBracketSameLine": true,
+  "prettier.singleQuote": false,
+  "prettier.printWidth": 100,
+  "eslint.packageManager": "yarn"
+}
