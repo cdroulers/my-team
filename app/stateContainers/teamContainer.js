@@ -4,6 +4,11 @@ import { Container } from "unstated";
 
 export type TeamState = {
   name: string,
+  players: [
+    {
+      name: string,
+    },
+  ],
 };
 
 const defaultState = {
@@ -18,6 +23,10 @@ export default class TeamContainer extends Container<TeamState> {
     const currentData = localStorage.getItem("my-team:metadata");
 
     this.state = currentData ? JSON.parse(currentData) : defaultState;
+    this.state = {
+      ...defaultState,
+      ...this.state,
+    };
   }
 
   storeState(): void {
@@ -26,5 +35,14 @@ export default class TeamContainer extends Container<TeamState> {
 
   setName(name: string): void {
     this.setState({ name }, () => this.storeState());
+  }
+
+  addPlayer(name: string): void {
+    this.setState(
+      state => ({
+        players: state.players.concat([{ name }]),
+      }),
+      () => this.storeState(),
+    );
   }
 }

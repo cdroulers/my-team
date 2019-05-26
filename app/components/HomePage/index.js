@@ -14,6 +14,7 @@ function HomePage({ team }: { team: Container<TeamState> }) {
       <h1>
         <FormattedMessage {...messages.header} />
         <Link to="/test">hai</Link>
+        <Link to="/sdfafasd">hai2</Link>
       </h1>
       <input
         name="team-name"
@@ -23,6 +24,22 @@ function HomePage({ team }: { team: Container<TeamState> }) {
           team.setName(e.target.value);
         }}
       />
+      <ul>
+        {team.state.players.map(x => (
+          <li key={x.name}>{x.name}</li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => {
+          // eslint-disable-next-line no-alert
+          const name = prompt("Player name:");
+          if (name) {
+            team.addPlayer(name);
+          }
+        }}>
+        Add player
+      </button>
     </section>
   );
 }
