@@ -1,6 +1,8 @@
 import React from "react";
 import { render } from "react-testing-library";
 import { IntlProvider } from "react-intl";
+import { Provider as UnstatedProvider } from "unstated";
+import { MemoryRouter } from "react-router-dom";
 
 import HomePage from "../index";
 
@@ -9,9 +11,13 @@ describe("<HomePage />", () => {
     const {
       container: { firstChild },
     } = render(
-      <IntlProvider locale="en">
-        <HomePage />
-      </IntlProvider>,
+      <MemoryRouter>
+        <UnstatedProvider>
+          <IntlProvider locale="en">
+            <HomePage />
+          </IntlProvider>
+        </UnstatedProvider>
+      </MemoryRouter>,
     );
     expect(firstChild).toMatchSnapshot();
   });
