@@ -1,16 +1,18 @@
 // @flow
 import React from "react";
 import { FormattedMessage } from "react-intl";
-import { Link } from "react-router-dom";
+import { Link, RouteComponentProps } from "react-router-dom";
 import withUnstated from "@airship/with-unstated";
 import messages from "./messages";
 import TeamContainer from "../../stateContainers/teamContainer";
 import PlayersContainer from "../../stateContainers/playersContainer";
+import MatchesContainer from "../../stateContainers/matchesContainer";
 
-type HomePageProps = {
-  team: TeamContainer,
-  players: PlayersContainer,
-};
+interface HomePageProps extends RouteComponentProps {
+  team: TeamContainer;
+  players: PlayersContainer;
+  matches: MatchesContainer;
+}
 
 export class HomePage extends React.Component<HomePageProps> {
   componentWillMount() {
@@ -19,7 +21,7 @@ export class HomePage extends React.Component<HomePageProps> {
   }
 
   render() {
-    const { team, players } = this.props;
+    const { team, players, matches } = this.props;
     if (team.state.loading || players.state.loading) {
       return <div>loading!</div>;
     }
@@ -41,7 +43,7 @@ export class HomePage extends React.Component<HomePageProps> {
         />
         <ul>
           {players.state.players.map(x => (
-            <li key={x.name}>{x.name}</li>
+            <li key={x.id}>{x.name}</li>
           ))}
         </ul>
         <button
@@ -55,6 +57,14 @@ export class HomePage extends React.Component<HomePageProps> {
           }}>
           Add player
         </button>
+        <button
+          type="button"
+          onClick={async () => {
+            const m = await matches.beginMatch(players.state.players.map(x => x.id));
+            this.props.history.push(`/matches/${m.id}`);
+          }}>
+          Start match
+        </button>
       </section>
     );
   }
@@ -63,4 +73,5 @@ export class HomePage extends React.Component<HomePageProps> {
 export default withUnstated(HomePage, {
   team: TeamContainer,
   players: PlayersContainer,
+  matches: MatchesContainer,
 });

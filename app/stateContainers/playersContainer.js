@@ -1,7 +1,7 @@
 // @flow
 
 import { Container } from "unstated";
-import { Player } from "./playerContainer";
+import { Player, createPlayer } from "./playerContainer";
 
 export type PlayersState = {
   loading: boolean,
@@ -42,7 +42,7 @@ export default class PlayersContainer extends Container<PlayersState> {
   addPlayer(name: string): void {
     this.setState(
       state => ({
-        players: state.players.concat([{ name }]),
+        players: state.players.concat([createPlayer(name)]),
       }),
       () => this.storeState(),
     );

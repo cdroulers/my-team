@@ -16,9 +16,5 @@
     ".eslintrc": "json"
   },
   "javascript.validate.enable": false,
-  "prettier.bracketSpacing": true,
-  "prettier.jsxBracketSameLine": true,
-  "prettier.singleQuote": false,
-  "prettier.printWidth": 100,
   "eslint.packageManager": "yarn"
 }

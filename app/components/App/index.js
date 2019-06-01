@@ -11,6 +11,7 @@ import React from "react";
 import { Switch, Route } from "react-router-dom";
 
 import HomePage from "components/HomePage/Loadable";
+import MatchPage from "components/MatchPage/Loadable";
 import NotFoundPage from "components/NotFoundPage/Loadable";
 
 import GlobalStyle from "../../global-styles";
@@ -25,6 +26,7 @@ export default function App() {
       TEST
       <Switch>
         <Route exact path="/" component={HomePage} />
+        <Route exact path="/matches/:matchId" component={MatchPage} />
         <Route exact path="/test" component={Test} />
         <Route component={NotFoundPage} />
       </Switch>
