@@ -3,46 +3,45 @@
 import { Container } from "unstated";
 
 export type TeamState = {
+  loading: boolean,
+  team: Team,
+};
+
+export type Team = {
   name: string,
-  players: [
-    {
-      name: string,
-    },
-  ],
 };
 
 const defaultState = {
-  name: "",
-  players: [],
+  loading: false,
+  team: { name: "" },
 };
 
 export default class TeamContainer extends Container<TeamState> {
   constructor() {
     super();
+    this.state = { ...defaultState };
+  }
 
-    const currentData = localStorage.getItem("my-team:metadata");
+  loadTeam(): Promise<TeamState> {
+    return new Promise(resolve => {
+      this.setState({ loading: true }, () => {
+        const currentData = localStorage.getItem("my-team:metadata");
+        const newState = { loading: false, team: { name: "" } };
+        if (currentData) {
+          newState.team = JSON.parse(currentData);
+        }
 
-    this.state = currentData ? JSON.parse(currentData) : defaultState;
-    this.state = {
-      ...defaultState,
-      ...this.state,
-    };
+        this.setState(newState);
+        resolve(newState);
+      });
+    });
   }
 
   storeState(): void {
-    localStorage.setItem("my-team:metadata", JSON.stringify(this.state));
+    localStorage.setItem("my-team:metadata", JSON.stringify(this.state.team));
   }
 
   setName(name: string): void {
-    this.setState({ name }, () => this.storeState());
-  }
-
-  addPlayer(name: string): void {
-    this.setState(
-      state => ({
-        players: state.players.concat([{ name }]),
-      }),
-      () => this.storeState(),
-    );
+    this.setState({ team: { name } }, () => this.storeState());
   }
 }
