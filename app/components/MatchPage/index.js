@@ -21,9 +21,9 @@ const messages = defineMessages({
 });
 
 export class MatchPage extends React.Component<MatchPageProps> {
-  componentWillMount() {
-    this.props.matchContainer.loadMatch(this.props.match.params.matchId);
-    this.props.players.loadPlayers();
+  async componentWillMount() {
+    const match = await this.props.matchContainer.loadMatch(this.props.match.params.matchId);
+    this.props.players.loadPlayers(match.match.players.map(x => x.playerId));
   }
 
   render() {
@@ -32,6 +32,14 @@ export class MatchPage extends React.Component<MatchPageProps> {
       return <div>loading!</div>;
     }
 
+    if (!matchContainer.state.match) {
+      return <div>Match not found</div>;
+    }
+
+    const selectedPlayers = players.state.players.filter(
+      x => matchContainer.state.match.players.filter(p => p.playerId === x.id).length > 0,
+    );
+
     return (
       <section>
         <h1>
@@ -39,6 +47,9 @@ export class MatchPage extends React.Component<MatchPageProps> {
         </h1>
         <pre>
           <code>{JSON.stringify(matchContainer.state.match, null, 2)}</code>
+        </pre>
+        <pre>
+          <code>{JSON.stringify(selectedPlayers, null, 2)}</code>
         </pre>
       </section>
     );

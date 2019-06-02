@@ -14,7 +14,7 @@ export type PlayerMatch = {
   timePlayed: number,
 };
 
-export function createMatch(playerIds: [String]) {
+export function createMatch(playerIds: [String]): Match {
   return {
     id: Math.random()
       .toString()
@@ -30,7 +30,7 @@ export type MatchState = {
   match: Match,
 };
 
-const defaultState = {
+const defaultState: MatchState = {
   loading: false,
   match: null,
 };

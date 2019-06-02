@@ -20,13 +20,17 @@ export default class PlayersContainer extends Container<PlayersState> {
     this.state = { ...defaultState };
   }
 
-  loadPlayers(): Promise<PlayersState> {
+  loadPlayers(ids: [String]): Promise<PlayersState> {
     return new Promise(resolve => {
       this.setState({ loading: true }, () => {
         const currentData = localStorage.getItem("my-team:players");
         const newState = { loading: false, players: [] };
         if (currentData) {
           newState.players = JSON.parse(currentData);
+        }
+
+        if (ids && ids.length > 0) {
+          newState.players = newState.players.filter(x => ids.indexOf(x.id) >= 0);
         }
 
         this.setState(newState);

@@ -1,9 +1,8 @@
 // @flow
 import React from "react";
-import { FormattedMessage } from "react-intl";
-import { Link, RouteComponentProps } from "react-router-dom";
+import { FormattedMessage, defineMessages } from "react-intl";
+import { RouteComponentProps } from "react-router-dom";
 import withUnstated from "@airship/with-unstated";
-import messages from "./messages";
 import TeamContainer from "../../stateContainers/teamContainer";
 import PlayersContainer from "../../stateContainers/playersContainer";
 import MatchesContainer from "../../stateContainers/matchesContainer";
@@ -14,7 +13,18 @@ interface HomePageProps extends RouteComponentProps {
   matches: MatchesContainer;
 }
 
+const messages = defineMessages({
+  header: {
+    id: `app.components.HomePage.header`,
+    defaultMessage: "This is the HomePage container!",
+  },
+});
+
 export class HomePage extends React.Component<HomePageProps> {
+  state = {
+    selectedPlayers: {},
+  };
+
   componentWillMount() {
     this.props.team.loadTeam();
     this.props.players.loadPlayers();
@@ -30,8 +40,6 @@ export class HomePage extends React.Component<HomePageProps> {
       <section>
         <h1>
           <FormattedMessage {...messages.header} />
-          <Link to="/test">hai</Link>
-          <Link to="/sdfafasd">hai2</Link>
         </h1>
         <input
           name="team-name"
@@ -43,7 +51,23 @@ export class HomePage extends React.Component<HomePageProps> {
         />
         <ul>
           {players.state.players.map(x => (
-            <li key={x.id}>{x.name}</li>
+            <li key={x.id}>
+              <label>
+                <input
+                  type="checkbox"
+                  onChange={e => {
+                    const { checked } = e.target;
+                    this.setState(state => {
+                      const selectedPlayers = { ...state.selectedPlayers };
+                      selectedPlayers[x.id] = checked;
+                      return { selectedPlayers };
+                    });
+                  }}
+                  checked={this.state.selectedPlayers[x.id]}
+                />
+                {x.name}
+              </label>
+            </li>
           ))}
         </ul>
         <button
@@ -60,7 +84,8 @@ export class HomePage extends React.Component<HomePageProps> {
         <button
           type="button"
           onClick={async () => {
-            const m = await matches.beginMatch(players.state.players.map(x => x.id));
+            const playerIds = Object.keys(this.state.selectedPlayers);
+            const m = await matches.beginMatch(playerIds);
             this.props.history.push(`/matches/${m.id}`);
           }}>
           Start match
