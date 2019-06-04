@@ -5,6 +5,7 @@ import { RouteComponentProps } from "react-router-dom";
 import withUnstated from "@airship/with-unstated";
 import MatchContainer from "../../stateContainers/matchContainer";
 import PlayersContainer from "../../stateContainers/playersContainer";
+import FormattedDateTime from "../shared/formattedDateTime";
 
 interface MatchPageProps extends RouteComponentProps<{ matchId: String }> {
   matchContainer: MatchContainer;
@@ -16,7 +17,7 @@ export const scope = "app.containers.HomePage";
 const messages = defineMessages({
   header: {
     id: `app.components.MatchPage.header`,
-    defaultMessage: "A MATCH!",
+    defaultMessage: "Match ID #{id}",
   },
 });
 
@@ -40,11 +41,23 @@ export class MatchPage extends React.Component<MatchPageProps> {
       x => matchContainer.state.match.players.filter(p => p.playerId === x.id).length > 0,
     );
 
+    const m = matchContainer.state.match;
+
     return (
       <section>
         <h1>
-          <FormattedMessage {...messages.header} />
+          <FormattedMessage {...messages.header} values={{ id: m.id }} />
         </h1>
+        <ul>
+          <li>
+            Started at: <FormattedDateTime value={m.startedAt} />
+          </li>
+          {m.endedAt && (
+            <li>
+              Ended at: <FormattedDateTime value={m.endedAt} />
+            </li>
+          )}
+        </ul>
         <pre>
           <code>{JSON.stringify(matchContainer.state.match, null, 2)}</code>
         </pre>

@@ -9,9 +9,23 @@ export type Match = {
   players: [PlayerMatch],
 };
 
+type PositionType = "Bench" | "Offense" | "Defense" | "Goalie";
+
+export type Position = {
+  type: PositionType,
+  timePlayed: number,
+};
+
+export type Positions = {
+  Bench: Position,
+  Offense: Position,
+  Defense: Position,
+  Goalie: Position,
+};
+
 export type PlayerMatch = {
   playerId: String,
-  timePlayed: number,
+  positions: Positions,
 };
 
 export function createMatch(playerIds: [String]): Match {
@@ -21,7 +35,10 @@ export function createMatch(playerIds: [String]): Match {
       .split(".")[1],
     startedAt: new Date(),
     endedAt: null,
-    players: playerIds.map(x => ({ playerId: x, timePlayed: 0 })),
+    players: playerIds.map(x => {
+      const result: PlayerMatch = { playerId: x, timePlayed: 0 };
+      return result;
+    }),
   };
 }
 
