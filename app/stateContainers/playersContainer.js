@@ -9,7 +9,7 @@ export type PlayersState = {
 };
 
 const defaultState = {
-  loading: false,
+  loading: true,
   players: [],
 };
 
@@ -17,7 +17,8 @@ export default class PlayersContainer extends Container<PlayersState> {
   constructor() {
     super();
 
-    this.state = { ...defaultState };
+    const state: PlayersState = { ...defaultState };
+    this.state = state;
   }
 
   loadPlayers(ids: [String]): Promise<PlayersState> {

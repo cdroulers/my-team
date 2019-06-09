@@ -2,7 +2,7 @@
 
 import { Container } from "unstated";
 
-import { Match, createMatch } from "./matchContainer";
+import { Match, createMatch, storeMatch } from "./matchContainer";
 
 export type MatchesState = {
   loading: boolean,
@@ -39,10 +39,6 @@ export default class MatchesContainer extends Container<MatchesState> {
     });
   }
 
-  storeState(): void {
-    localStorage.setItem("my-team:metadata", JSON.stringify(this.state.team));
-  }
-
   beginMatch(playerIds: [String]): Promise<Match> {
     const match = createMatch(playerIds);
 
@@ -50,7 +46,7 @@ export default class MatchesContainer extends Container<MatchesState> {
       state => ({
         matches: state.matches.concat(match),
       }),
-      () => localStorage.setItem(`match:${match.id}`, JSON.stringify(match)),
+      () => storeMatch(match),
     );
 
     return new Promise(resolve => resolve(match));
