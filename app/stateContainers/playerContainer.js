@@ -12,11 +12,6 @@ export type PlayerState = {
   player: Player,
 };
 
-const defaultState = {
-  loading: false,
-  player: null,
-};
-
 export function createPlayer(name: String) {
   return {
     id: Math.random()
@@ -25,6 +20,25 @@ export function createPlayer(name: String) {
     name,
   };
 }
+
+export function loadPlayer(obj: any): Player {
+  const result = { ...obj };
+
+  // Nothing to parse here, but future proof!
+  return result;
+}
+
+export function storePlayer(player: Player): Promise<Player> {
+  return new Promise(resolve => {
+    localStorage.setItem(`player:${player.id}`, JSON.stringify(player));
+    resolve(player);
+  });
+}
+
+const defaultState = {
+  loading: false,
+  player: null,
+};
 
 export default class PlayerContainer extends Container<PlayerState> {
   constructor() {

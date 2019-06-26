@@ -1,7 +1,7 @@
 // @flow
 
 import { Container } from "unstated";
-import { Player, createPlayer } from "./playerContainer";
+import { Player, createPlayer, storePlayer, loadPlayer } from "./playerContainer";
 
 export type PlayersState = {
   loading: boolean,
@@ -24,11 +24,16 @@ export default class PlayersContainer extends Container<PlayersState> {
   loadPlayers(ids: [String]): Promise<PlayersState> {
     return new Promise(resolve => {
       this.setState({ loading: true }, () => {
-        const currentData = localStorage.getItem("my-team:players");
-        const newState = { loading: false, players: [] };
-        if (currentData) {
-          newState.players = JSON.parse(currentData);
+        const results: [Player] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("player:")) {
+            const player = loadPlayer(JSON.parse(localStorage.getItem(key)));
+            results.push(player);
+          }
         }
+
+        const newState = { loading: false, players: results };
 
         if (ids && ids.length > 0) {
           newState.players = newState.players.filter(x => ids.indexOf(x.id) >= 0);
@@ -40,16 +45,13 @@ export default class PlayersContainer extends Container<PlayersState> {
     });
   }
 
-  storeState(): void {
-    localStorage.setItem("my-team:players", JSON.stringify(this.state.players));
-  }
-
   addPlayer(name: string): void {
+    const newPlayer = createPlayer(name);
     this.setState(
       state => ({
-        players: state.players.concat([createPlayer(name)]),
+        players: state.players.concat([newPlayer]),
       }),
-      () => this.storeState(),
+      () => storePlayer(newPlayer),
     );
   }
 }

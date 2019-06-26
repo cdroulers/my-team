@@ -1,11 +1,12 @@
 // @flow
 import React from "react";
-import { FormattedMessage, defineMessages } from "react-intl";
+import { FormattedMessage, defineMessages, FormattedTime } from "react-intl";
 import { RouteComponentProps } from "react-router-dom";
 import withUnstated from "@airship/with-unstated";
 import TeamContainer from "../../stateContainers/teamContainer";
 import PlayersContainer from "../../stateContainers/playersContainer";
 import MatchesContainer from "../../stateContainers/matchesContainer";
+import FormattedDateTime from "../shared/formattedDateTime";
 
 interface HomePageProps extends RouteComponentProps {
   team: TeamContainer;
@@ -18,6 +19,10 @@ const messages = defineMessages({
     id: `app.components.HomePage.header`,
     defaultMessage: "This is the HomePage container!",
   },
+  matches: {
+    id: `app.components.HomePage.matches`,
+    defaultMessage: "Previous matches",
+  },
 });
 
 export class HomePage extends React.Component<HomePageProps> {
@@ -28,19 +33,20 @@ export class HomePage extends React.Component<HomePageProps> {
   componentWillMount() {
     this.props.team.loadTeam();
     this.props.players.loadPlayers();
+    this.props.matches.loadMatches();
   }
 
   render() {
     const { team, players, matches } = this.props;
-    if (team.state.loading || players.state.loading) {
+    if (team.state.loading || players.state.loading || matches.state.loading) {
       return <div>loading!</div>;
     }
 
     return (
       <section>
-        <h1>
+        <h2>
           <FormattedMessage {...messages.header} />
-        </h1>
+        </h2>
         <input
           name="team-name"
           placeholder="Team name"
@@ -63,7 +69,7 @@ export class HomePage extends React.Component<HomePageProps> {
                       return { selectedPlayers };
                     });
                   }}
-                  checked={this.state.selectedPlayers[x.id]}
+                  checked={this.state.selectedPlayers[x.id] || false}
                 />
                 {x.name}
               </label>
@@ -90,6 +96,25 @@ export class HomePage extends React.Component<HomePageProps> {
           }}>
           Start match
         </button>
+
+        <h2>
+          <FormattedMessage {...messages.matches} />
+        </h2>
+        <ul>
+          {matches.state.matches.map(x => (
+            <li key={x.id}>
+              <a href={"/matches/" + x.id}>
+                {x.id} - <FormattedDateTime value={x.startedAt} />{" "}
+                {x.endedAt && (
+                  <span>
+                    {" "}
+                    - <FormattedTime value={x.endedAt} />
+                  </span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
     );
   }

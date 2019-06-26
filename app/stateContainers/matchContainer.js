@@ -14,6 +14,7 @@ type PositionType = "Bench" | "Offense" | "Defense" | "Goalie";
 export type Position = {
   type: PositionType,
   timePlayed: number,
+  numberOfShifts: number,
 };
 
 export type Positions = {
@@ -32,6 +33,7 @@ export type OnFieldPlayer = {
   playerId: String,
   position: PositionType,
   timePlayed: number,
+  readyForBench: Boolean,
 };
 
 export type OnBenchPlayer = {
@@ -46,6 +48,16 @@ export type MatchPlayers = {
   onBench: [OnBenchPlayer],
 };
 
+export function loadMatch(obj: any): Match {
+  const result = { ...obj };
+  result.startedAt = new Date(result.startedAt);
+  if (result.endedAt) {
+    result.endedAt = new Date(result.endedAt);
+  }
+
+  return result;
+}
+
 export function createMatch(playerIds: [String]): Match {
   return {
     id: Math.random()
@@ -59,10 +71,10 @@ export function createMatch(playerIds: [String]): Match {
           const result: PlayerMatch = {
             playerId: x,
             positions: {
-              Bench: { type: "Bench", timePlayed: 0 },
-              Offense: { type: "Offense", timePlayed: 0 },
-              Defense: { type: "Defense", timePlayed: 0 },
-              Goalie: { type: "Goalie", timePlayed: 0 },
+              Bench: { type: "Bench", timePlayed: 0, numberOfShifts: 0 },
+              Offense: { type: "Offense", timePlayed: 0, numberOfShifts: 0 },
+              Defense: { type: "Defense", timePlayed: 0, numberOfShifts: 0 },
+              Goalie: { type: "Goalie", timePlayed: 0, numberOfShifts: 0 },
             },
           };
           return result;
@@ -98,23 +110,25 @@ export default class MatchContainer extends Container<MatchState> {
     this.state = { ...defaultState };
   }
 
+  unloadMatch() {
+    clearInterval(this.updateTimesInterval);
+  }
+
   loadMatch(matchId: String): Promise<MatchState> {
     return new Promise(resolve => {
       this.setState({ loading: true }, () => {
         const currentData = localStorage.getItem(`match:${matchId}`);
-        const newState = { loading: false, match: null };
+        const newState: MatchState = { loading: false, match: null };
         if (currentData) {
-          newState.match = JSON.parse(currentData);
-          newState.match.startedAt = new Date(newState.match.startedAt);
-          if (newState.match.endedAt) {
-            newState.match.endedAt = new Date(newState.match.endedAt);
-          }
+          newState.match = loadMatch(JSON.parse(currentData));
         }
 
         this.setState(newState);
         resolve(newState);
-        this.counter = 0;
-        this.updateTimesInterval = setInterval(() => this.updateTimes(), 1000);
+        if (newState.match && !newState.match.endedAt) {
+          this.counter = 0;
+          this.updateTimesInterval = setInterval(() => this.updateTimes(), 1000);
+        }
       });
     });
   }
@@ -138,9 +152,78 @@ export default class MatchContainer extends Container<MatchState> {
         };
       },
       () => {
-        if (this.counter % 5 === 0) {
-          storeMatch(this.state.match);
-        }
+        storeMatch(this.state.match);
+      },
+    );
+  }
+
+  setReadyForBench(playerId: String, ready: Boolean) {
+    this.setState(
+      state => {
+        const onField = state.match.players.onField.map(x => ({
+          ...x,
+          readyForBench: x.playerId === playerId ? ready : x.readyForBench,
+        }));
+        return {
+          ...state,
+          match: {
+            ...state.match,
+            players: {
+              ...state.match.players,
+              onField,
+            },
+          },
+        };
+      },
+      () => {
+        storeMatch(this.state.match);
+      },
+    );
+  }
+
+  swapAll() {
+    this.setState(
+      state => {
+        const fromBench = state.match.players.onBench.filter(x => Boolean(x.nextPosition));
+        const stayBench = state.match.players.onBench.filter(x => !x.nextPosition);
+        const fromField = state.match.players.onField.filter(x => x.readyForBench);
+        const stayField = state.match.players.onField.filter(x => !x.readyForBench);
+
+        const totals = { ...state.match.players.totals };
+        fromBench.forEach(x => {
+          totals[x.playerId].positions.Bench.timePlayed = x.timeBenched;
+          totals[x.playerId].positions[x.nextPosition].numberOfShifts++;
+        });
+
+        fromField.forEach(x => {
+          totals[x.playerId].positions[x.position].timePlayed = x.timePlayed;
+          totals[x.playerId].positions.Bench.numberOfShifts++;
+        });
+        const toField: [OnFieldPlayer] = fromBench.map(x => ({
+          playerId: x.playerId,
+          position: x.nextPosition,
+          timePlayed: state.match.players.totals[x.playerId].positions[x.nextPosition].timePlayed,
+          readyForBench: false,
+        }));
+        const toBench: [OnBenchPlayer] = fromField.map(x => ({
+          playerId: x.playerId,
+          nextPosition: null,
+          timeBenched: state.match.players.totals[x.playerId].positions.Bench.timePlayed,
+        }));
+        return {
+          ...state,
+          match: {
+            ...state.match,
+            players: {
+              ...state.match.players,
+              onBench: stayBench.concat(toBench),
+              onField: stayField.concat(toField),
+            },
+          },
+        };
+      },
+      () => {
+        storeMatch(this.state.match);
       },
     );
   }
@@ -149,10 +232,31 @@ export default class MatchContainer extends Container<MatchState> {
     return this.setNextPosition(playerId, null);
   }
 
+  endMatch() {
+    this.setState(
+      state => ({
+        ...state,
+        match: {
+          ...state.match,
+          endedAt: state.match.endedAt || new Date(),
+        },
+      }),
+      () => {
+        storeMatch(this.state.match);
+      },
+    );
+
+    clearInterval(this.updateTimesInterval);
+  }
+
   updateTimes() {
     this.counter++;
     this.setState(
       state => {
+        const onField = state.match.players.onField.map(x => ({
+          ...x,
+          timePlayed: x.timePlayed + 1,
+        }));
         const onBench = state.match.players.onBench.map(x => ({
           ...x,
           timeBenched: x.timeBenched + 1,
@@ -163,6 +267,7 @@ export default class MatchContainer extends Container<MatchState> {
             ...state.match,
             players: {
               ...state.match.players,
+              onField,
               onBench,
             },
           },

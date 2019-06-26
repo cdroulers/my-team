@@ -2,7 +2,7 @@
 
 import { Container } from "unstated";
 
-import { Match, createMatch, storeMatch } from "./matchContainer";
+import { Match, createMatch, storeMatch, loadMatch } from "./matchContainer";
 
 export type MatchesState = {
   loading: boolean,
@@ -17,7 +17,8 @@ const defaultState = {
 export default class MatchesContainer extends Container<MatchesState> {
   constructor() {
     super();
-    this.state = { ...defaultState };
+    const state: MatchesState = { ...defaultState };
+    this.state = state;
   }
 
   loadMatches(): Promise<MatchesState> {
@@ -27,7 +28,7 @@ export default class MatchesContainer extends Container<MatchesState> {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key.startsWith("match:")) {
-            const match = JSON.parse(localStorage.getItem(key));
+            const match = loadMatch(JSON.parse(localStorage.getItem(key)));
             results.push(match);
           }
         }
